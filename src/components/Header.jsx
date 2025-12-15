@@ -5,54 +5,67 @@ import Dark from "../assets/Light.svg";
 import Light from "../assets/Dark.svg";
 import Chack from "../assets/icon-arrow-down.svg";
 
-export default function Header() {
+export default function Header({ dark, setDark }) {
   const [font, setFont] = useState("sans-serif");
-  const [dark, setDark] = useState(false);
 
-  // 🌍 FONT — butun sahifa
   useEffect(() => {
     document.documentElement.style.fontFamily = font;
   }, [font]);
 
-  // 🌙 DARK MODE — butun sahifa
-  useEffect(() => {
-    document.documentElement.classList.toggle("dark", dark);
-  }, [dark]);
-
   return (
-    <div className="flex justify-between items-center w-[737px] mx-auto mt-[35px]">
+    <div
+      className="
+        flex justify-between items-center
+        w-full max-w-[375px] px-4 pt-6 mx-auto
+        sm:max-w-[640px]
+        md:max-w-[737px]
+      "
+    >
+      {/* Logo */}
       <a href="/">
-        <img src={Logo} alt="Logo" />
+        <img src={Logo} alt="Logo" className="w-7 sm:w-8" />
       </a>
 
-      <div className="flex gap-[26px] items-center">
-        {/* FONT SELECT */}
-        <div className="relative">
+      {/* Right controls */}
+      <div className="flex items-center gap-4 sm:gap-6">
+        {/* Font select */}
+        <div className="relative text-sm sm:text-base">
           <select
             value={font}
             onChange={(e) => setFont(e.target.value)}
-            className="appearance-none bg-transparent cursor-pointer pr-8"
+            className="
+              appearance-none bg-transparent pr-6
+              focus:outline-none cursor-pointer
+            "
           >
-            <option value="sans-serif">Sans Serif</option>
-            <option value="serif">Serif</option>
-            <option value="monospace">Mono</option>
+            <option className="dark:text-white" value="sans-serif">
+              Sans Serif
+            </option>
+            <option className="dark:text-white" value="serif">
+              Serif
+            </option>
+            <option className="dark:text-white" value="monospace">
+              Mono
+            </option>
           </select>
 
           <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center">
-            <img src={Chack} alt="arrow" className="w-[12px] h-[6px]" />
+            <img src={Chack} alt="arrow" className="w-3 h-[6px]" />
           </div>
         </div>
 
-        {/* LINE */}
-        <img src={Line} alt="line" />
+        {/* Divider — mobil’da yashiramiz */}
+        <img src={Line} alt="line" className="hidden sm:block" />
 
-        {/* DARK MODE */}
-        <img
-          src={dark ? Dark : Light}
-          alt="mode"
-          className="cursor-pointer"
-          onClick={() => setDark(!dark)}
-        />
+        {/* Dark mode */}
+        <button onClick={() => setDark(!dark)}>
+          <img
+            src={dark ? Light : Dark}
+            alt="mode"
+            className="
+        w-10 sm:w-15 md:w-20"
+          />
+        </button>
       </div>
     </div>
   );

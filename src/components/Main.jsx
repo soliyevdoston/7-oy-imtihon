@@ -4,109 +4,129 @@ import Search from "../assets/icon-search.svg";
 import Play from "../assets/icon-play.svg";
 import Pause from "../assets/pause.png";
 
-export default function Main() {
+export default function Main({ setData }) {
   const [word, setWord] = useState("");
   const [error, setError] = useState("");
-  const [data, setData] = useState(null);
-
+  const [localData, setLocalData] = useState(null);
   const [audio, setAudio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  /* ================= AUDIO ================= */
+  // audio tayyorlash
   useEffect(() => {
-    if (data?.phonetics) {
-      const phoneticWithAudio = data.phonetics.find(
-        (p) => p.audio && p.audio.length > 0
-      );
+    if (localData && localData.phonetics) {
+      let foundAudio = null;
 
-      if (phoneticWithAudio) {
-        const audioUrl = phoneticWithAudio.audio.startsWith("//")
-          ? "https:" + phoneticWithAudio.audio
-          : phoneticWithAudio.audio;
+      for (let i = 0; i < localData.phonetics.length; i++) {
+        if (
+          localData.phonetics[i].audio &&
+          localData.phonetics[i].audio !== ""
+        ) {
+          foundAudio = localData.phonetics[i];
+          break;
+        }
+      }
 
-        const newAudio = new Audio(audioUrl);
-        newAudio.onended = () => setIsPlaying(false);
+      if (foundAudio) {
+        let audioUrl = foundAudio.audio;
 
-        setAudio(newAudio);
+        if (audioUrl.startsWith("//")) {
+          audioUrl = "https:" + audioUrl;
+        }
+
+        const sound = new Audio(audioUrl);
+
+        sound.onended = function () {
+          setIsPlaying(false);
+        };
+
+        setAudio(sound);
+        setIsPlaying(false);
       } else {
         setAudio(null);
+        setIsPlaying(false);
       }
-    }
-
-    setIsPlaying(false);
-  }, [data]);
-
-  const toggleAudio = () => {
-    if (!audio) return;
-
-    if (isPlaying) {
-      audio.pause();
-      setIsPlaying(false);
     } else {
-      audio.play();
-      setIsPlaying(true);
+      setAudio(null);
+      setIsPlaying(false);
+    }
+  }, [localData]);
+
+  // play / pause
+  const toggleAudio = () => {
+    if (audio) {
+      if (isPlaying) {
+        audio.pause();
+        setIsPlaying(false);
+      } else {
+        audio.play();
+        setIsPlaying(true);
+      }
     }
   };
 
+  // search
+  const dataSearch = async (e) => {
+    e.preventDefault();
+
+    if (word === "") {
+      setError("empty");
+      setLocalData(null);
+      setData(null);
+    } else {
+      try {
+        const result = await getWordData(word);
+
+        if (result && result.length > 0) {
+          setLocalData(result[0]);
+          setData(result[0]);
+          setError("");
+        } else {
+          setError("notfound");
+          setLocalData(null);
+          setData(null);
+        }
+      } catch (err) {
+        setError("notfound");
+        setLocalData(null);
+        setData(null);
+      }
+    }
+  };
+
+  // synonym bosilganda
   const searchBySynonym = async (syn) => {
     setWord(syn);
     setError("");
+    setLocalData(null);
     setData(null);
 
     try {
       const result = await getWordData(syn);
 
-      if (!result || result.length === 0) {
+      if (result && result.length > 0) {
+        setLocalData(result[0]);
+        setData(result[0]);
+      } else {
         setError("notfound");
-        return;
       }
-
-      setData(result[0]);
-    } catch {
+    } catch (err) {
       setError("notfound");
-    }
-  };
-
-  /* ================= SEARCH ================= */
-  const dataSearch = async (e) => {
-    e.preventDefault();
-
-    if (!word.trim()) {
-      setError("empty");
-      setData(null);
-      return;
-    }
-
-    try {
-      const result = await getWordData(word);
-
-      if (!result || result.length === 0) {
-        setError("notfound");
-        setData(null);
-        return;
-      }
-
-      setData(result[0]);
-      setError("");
-    } catch {
-      setError("notfound");
-      setData(null);
     }
   };
 
   return (
-    <div className="pt-[51.5px] w-[737px] mx-auto pb-[100px] ">
-      {/* ================= SEARCH INPUT ================= */}
+    <div
+      className="
+        pt-8 pb-24 mx-auto
+        w-full max-w-[375px] px-4
+        sm:max-w-[640px]
+        md:max-w-[737px]
+      "
+    >
+      {/* Search */}
       <form onSubmit={dataSearch}>
-        <div className="relative w-[736px] mx-auto">
+        <div className="relative">
           <input
-            className={`
-              w-full h-[64px] rounded-[16px] bg-[#F4F4F4]
-              text-[20px] pl-[20px]
-              border outline-none border-transparent
-              focus:border-[#A445ED]
-              ${error ? "border-[#ff5252] focus:border-[#ff5252]" : ""}
-            `}
             type="text"
             placeholder="Search for any word…"
             value={word}
@@ -114,115 +134,105 @@ export default function Main() {
               setWord(e.target.value);
               if (e.target.value.trim()) setError("");
             }}
+            className={`
+              w-full h-14 sm:h-16
+              rounded-2xl
+              bg-[#F4F4F4] dark:bg-[#1F1F1F]
+              text-base sm:text-xl
+              pl-4 pr-12
+              text-black dark:text-white
+              border outline-none
+              ${
+                error
+                  ? "border-[#ff5252]"
+                  : "border-transparent focus:border-[#A445ED]"
+              }
+            `}
           />
 
           <img
             src={Search}
             alt="search"
-            className="absolute right-[20px] top-1/2 -translate-y-1/2 w-[20px] h-[20px]"
+            className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5"
           />
         </div>
 
         {error === "empty" && (
-          <p className="text-[#ff5252] text-[14px] mt-[6px]">
-            Whoops, can’t be empty…
-          </p>
+          <p className="text-[#ff5252] text-sm mt-1">Whoops, can’t be empty…</p>
         )}
       </form>
 
-      {/* ================= NOT FOUND ================= */}
+      {/* Not found */}
       {error === "notfound" && (
-        <div className="w-[736px] h-[204px] mx-auto flex flex-col items-center text-center pt-[132px]">
-          <h1 className="text-[64px] mb-[44px]">🤫</h1>
-
-          <h2 className="text-[20px] font-bold mb-[24px]">
-            No Definitions Found
-          </h2>
-
-          <p className="text-[#757575]">
+        <div className="flex flex-col items-center text-center mt-24">
+          <h1 className="text-5xl mb-6">🤫</h1>
+          <h2 className="text-lg font-bold mb-3">No Definitions Found</h2>
+          <p className="text-[#757575] text-sm max-w-xs">
             Sorry pal, we couldn't find definitions for the word you were
-            looking for. You can try the search again at later time or head to
-            the web instead.
+            looking for.
           </p>
         </div>
       )}
 
-      {/* ================= WORD DATA ================= */}
-      {data && (
-        <div>
-          {/* WORD + AUDIO */}
-          <div className="mt-[45px] flex items-center justify-between">
+      {/* Result */}
+      {localData && (
+        <div className="mt-10">
+          {/* Word + audio */}
+          <div className="flex items-center justify-between gap-4">
             <div>
-              <h1 className="text-[45px] font-bold">{data.word}</h1>
-
-              {data.phonetic && (
-                <p className="text-[#A445ED] text-[24px] mt-[8px]">
-                  {data.phonetic}
+              <h1 className="text-3xl sm:text-5xl font-bold">
+                {localData.word}
+              </h1>
+              {localData.phonetic && (
+                <p className="text-[#A445ED] text-lg sm:text-2xl mt-1">
+                  {localData.phonetic}
                 </p>
               )}
             </div>
 
             {audio && (
-              <button
-                onClick={toggleAudio}
-                type="button"
-                className="w-[75px] h-[75px] flex items-center justify-center"
-              >
+              <button onClick={toggleAudio} type="button">
                 <img
                   src={isPlaying ? Pause : Play}
                   alt="audio"
-                  className="w-[75px] h-[75px]"
+                  className="w-14 h-14 sm:w-[75px] sm:h-[75px]"
                 />
               </button>
             )}
           </div>
 
-          {/* ================= MEANINGS ================= */}
-          {data.meanings.map((meaning, idx) => (
-            <div key={idx} className="mt-[40px]">
-              {/* PART OF SPEECH */}
-              <div className="flex items-center gap-[20px] mb-[24px]">
-                <p className="font-bold italic text-[18px]">
-                  {meaning.partOfSpeech}
-                </p>
-                <div className="flex-1 h-[1px] bg-[#E9E9E9]"></div>
+          {/* Meanings */}
+          {localData.meanings.map((meaning, idx) => (
+            <div key={idx} className="mt-8">
+              <div className="flex items-center gap-4 mb-4">
+                <p className="font-bold italic">{meaning.partOfSpeech}</p>
+                <div className="flex-1 h-px bg-[#E9E9E9] dark:bg-[#3A3A3A]" />
               </div>
-              <p className="text-[#757575]">Meaning</p>
 
-              <ul className="w-[714px] h-full mx-auto mt-[20px] list-disc pl-[24px]">
+              <ul className="list-disc pl-5">
                 {meaning.definitions.map((def, i) => (
                   <li
                     key={i}
-                    className="text-[#2D2D2D]  marker:text-[#A445ED] mb-[8px]"
+                    className="marker:text-[#A445ED] mb-2 text-sm sm:text-base"
                   >
                     {def.definition}
                   </li>
                 ))}
               </ul>
-              <div>
-                {meaning.synonyms && meaning.synonyms.length > 0 && (
-                  <div className="mt-[20px] flex items-start gap-[22px] pt-[40px]">
-                    <p className="text-[#757575] min-w-[80px]">Synonyms</p>
 
-                    <div className="flex flex-wrap gap-[12px]">
-                      {meaning.synonyms.map((syn, i) => (
-                        <button
-                          key={i}
-                          onClick={() => searchBySynonym(syn)}
-                          className="text-[#A445ED] cursor-pointer font-bold hover:underline"
-                        >
-                          {syn}
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {meaning.definitions[0]?.example && (
-                <p className="mt-[12px] text-[#757575] italic">
-                  “{meaning.definitions[0].example}”
-                </p>
+              {meaning.synonyms?.length > 0 && (
+                <div className="mt-4 flex gap-4 flex-wrap">
+                  <p className="text-[#757575]">Synonyms</p>
+                  {meaning.synonyms.map((syn, i) => (
+                    <button
+                      key={i}
+                      onClick={() => searchBySynonym(syn)}
+                      className="text-[#A445ED] font-bold hover:underline"
+                    >
+                      {syn}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
           ))}
