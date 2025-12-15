@@ -3,12 +3,12 @@ import link from "../assets/icon-new-window.svg";
 export default function Footer({ data }) {
   const defaultUrl = "https://en.wiktionary.org/wiki/Wiktionary:Main_Page";
 
-  let sourceUrls = [];
+  let manzil = [];
 
   if (data && data.sourceUrls && data.sourceUrls.length > 0) {
-    sourceUrls = data.sourceUrls;
+    manzil = data.sourceUrls;
   } else {
-    sourceUrls = [defaultUrl];
+    manzil = [defaultUrl];
   }
 
   return (
@@ -26,7 +26,7 @@ export default function Footer({ data }) {
         <h4 className="text-[#757575] dark:text-[#BEBEBE] shrink-0">Source</h4>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
-          {sourceUrls.map((url, idx) => (
+          {manzil.map((url, idx) => (
             <a
               key={idx}
               href={url}
