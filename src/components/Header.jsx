@@ -21,14 +21,11 @@ export default function Header({ dark, setDark }) {
         md:max-w-[737px]
       "
     >
-      {/* Logo */}
       <a href="/">
         <img src={Logo} alt="Logo" className="w-7 sm:w-8" />
       </a>
 
-      {/* Right controls */}
       <div className="flex items-center gap-4 sm:gap-6">
-        {/* Font select */}
         <div className="relative text-sm sm:text-base">
           <select
             value={font}
@@ -54,10 +51,8 @@ export default function Header({ dark, setDark }) {
           </div>
         </div>
 
-        {/* Divider — mobil’da yashiramiz */}
         <img src={Line} alt="line" className="hidden sm:block" />
 
-        {/* Dark mode */}
         <button onClick={() => setDark(!dark)}>
           <img
             src={dark ? Light : Dark}

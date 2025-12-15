@@ -11,7 +11,6 @@ export default function Main({ setData }) {
   const [audio, setAudio] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
 
-  // audio tayyorlash
   useEffect(() => {
     if (localData && localData.phonetics) {
       let foundAudio = null;
@@ -51,7 +50,6 @@ export default function Main({ setData }) {
     }
   }, [localData]);
 
-  // play / pause
   const toggleAudio = () => {
     if (audio) {
       if (isPlaying) {
@@ -64,7 +62,6 @@ export default function Main({ setData }) {
     }
   };
 
-  // search
   const dataSearch = async (e) => {
     e.preventDefault();
 
@@ -93,7 +90,6 @@ export default function Main({ setData }) {
     }
   };
 
-  // synonym bosilganda
   const searchBySynonym = async (syn) => {
     setWord(syn);
     setError("");
@@ -123,7 +119,6 @@ export default function Main({ setData }) {
         md:max-w-[737px]
       "
     >
-      {/* Search */}
       <form onSubmit={dataSearch}>
         <div className="relative">
           <input
@@ -162,7 +157,6 @@ export default function Main({ setData }) {
         )}
       </form>
 
-      {/* Not found */}
       {error === "notfound" && (
         <div className="flex flex-col items-center text-center mt-24">
           <h1 className="text-5xl mb-6">🤫</h1>
@@ -174,10 +168,8 @@ export default function Main({ setData }) {
         </div>
       )}
 
-      {/* Result */}
       {localData && (
         <div className="mt-10">
-          {/* Word + audio */}
           <div className="flex items-center justify-between gap-4">
             <div>
               <h1 className="text-3xl sm:text-5xl font-bold">
@@ -201,7 +193,6 @@ export default function Main({ setData }) {
             )}
           </div>
 
-          {/* Meanings */}
           {localData.meanings.map((meaning, idx) => (
             <div key={idx} className="mt-8">
               <div className="flex items-center gap-4 mb-4">

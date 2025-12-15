@@ -20,10 +20,8 @@ export default function Footer({ data }) {
         md:max-w-[737px]
       "
     >
-      {/* line */}
       <div className="w-full h-[1px] bg-[#E9E9E9] mb-4" />
 
-      {/* content */}
       <div className="flex flex-col gap-3 sm:flex-row sm:gap-6 sm:items-center">
         <h4 className="text-[#757575] dark:text-[#BEBEBE] shrink-0">Source</h4>
 

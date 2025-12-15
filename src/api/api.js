@@ -4,7 +4,7 @@ const getWordData = async (word) => {
   const res = await fetch(`${BASE_URL}/${word}`);
 
   if (!res.ok) {
-    throw new Error("So'z topilmadi");
+    throw new Error("Soz topilmadi");
   }
 
   return res.json();
