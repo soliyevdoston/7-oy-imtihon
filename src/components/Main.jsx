@@ -141,7 +141,6 @@ export default function Main({ setData }) {
         )}
       </form>
 
-      {/* 🔄 LOADING */}
       {loading && (
         <p className="text-center mt-20 text-[#757575] text-lg animate-pulse">
           Loading
@@ -151,7 +150,6 @@ export default function Main({ setData }) {
         </p>
       )}
 
-      {/* ❌ ERROR */}
       {!loading && error === "notfound" && (
         <div className="flex flex-col items-center text-center mt-24">
           <h1 className="text-5xl mb-6">🤫</h1>
@@ -163,7 +161,6 @@ export default function Main({ setData }) {
         </div>
       )}
 
-      {/* ✅ DATA */}
       {!loading && localData && (
         <div className="mt-10">
           <div className="flex items-center justify-between">
