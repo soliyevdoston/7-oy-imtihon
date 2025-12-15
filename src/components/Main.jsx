@@ -10,16 +10,14 @@ export default function Main({ setData }) {
   const [localData, setLocalData] = useState(null);
   const [audio, setAudio] = useState(null);
   const [Playing, setPlaying] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (localData && localData.phonetics) {
       let found = null;
 
       for (let i = 0; i < localData.phonetics.length; i++) {
-        if (
-          localData.phonetics[i].audio &&
-          localData.phonetics[i].audio !== ""
-        ) {
+        if (localData.phonetics[i].audio) {
           found = localData.phonetics[i];
           break;
         }
@@ -27,16 +25,10 @@ export default function Main({ setData }) {
 
       if (found) {
         let audioUrl = found.audio;
-
-        if (audioUrl.startsWith("//")) {
-          audioUrl = "https:" + audioUrl;
-        }
+        if (audioUrl.startsWith("//")) audioUrl = "https:" + audioUrl;
 
         const sound = new Audio(audioUrl);
-
-        sound.onended = function () {
-          setPlaying(false);
-        };
+        sound.onended = () => setPlaying(false);
 
         setAudio(sound);
         setPlaying(false);
@@ -44,45 +36,47 @@ export default function Main({ setData }) {
         setAudio(null);
         setPlaying(false);
       }
-    } else {
-      setAudio(null);
-      setPlaying(false);
     }
   }, [localData]);
 
   const toggleAudio = () => {
-    if (audio) {
-      if (Playing) {
-        audio.pause();
-        setPlaying(false);
-      } else {
-        audio.play();
-        setPlaying(true);
-      }
+    if (!audio) return;
+
+    if (Playing) {
+      audio.pause();
+      setPlaying(false);
+    } else {
+      audio.play();
+      setPlaying(true);
     }
   };
 
   const dataSearch = async (e) => {
     e.preventDefault();
 
-    if (word === "") {
+    if (!word.trim()) {
       setError("empty");
       setLocalData(null);
       setData(null);
-    } else {
-      try {
-        const result = await getWordData(word);
+      return;
+    }
 
-        if (result && result.length > 0) {
-          setLocalData(result[0]);
-          setData(result[0]);
-          setError("");
-        }
-      } catch (err) {
-        setError("notfound");
-        setLocalData(null);
-        setData(null);
+    try {
+      setLoading(true);
+      setError("");
+      setLocalData(null);
+      setData(null);
+
+      const result = await getWordData(word);
+
+      if (result && result.length > 0) {
+        setLocalData(result[0]);
+        setData(result[0]);
       }
+    } catch {
+      setError("notfound");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,26 +87,22 @@ export default function Main({ setData }) {
     setData(null);
 
     try {
+      setLoading(true);
       const result = await getWordData(sin);
 
       if (result && result.length > 0) {
         setLocalData(result[0]);
         setData(result[0]);
       }
-    } catch (err) {
+    } catch {
       setError("notfound");
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div
-      className="
-        pt-8 pb-24 mx-auto
-        w-full max-w-[375px] px-4
-        sm:max-w-[640px]
-        md:max-w-[737px]
-      "
-    >
+    <div className="pt-8 pb-24 mx-auto w-full max-w-[737px] px-4">
       <form onSubmit={dataSearch}>
         <div className="relative">
           <input
@@ -151,7 +141,18 @@ export default function Main({ setData }) {
         )}
       </form>
 
-      {error === "notfound" && (
+      {/* 🔄 LOADING */}
+      {loading && (
+        <p className="text-center mt-20 text-[#757575] text-lg animate-pulse">
+          Loading
+          <span className="animate-bounce inline-block">.</span>
+          <span className="animate-bounce inline-block delay-150">.</span>
+          <span className="animate-bounce inline-block delay-300">.</span>
+        </p>
+      )}
+
+      {/* ❌ ERROR */}
+      {!loading && error === "notfound" && (
         <div className="flex flex-col items-center text-center mt-24">
           <h1 className="text-5xl mb-6">🤫</h1>
           <h2 className="text-lg font-bold mb-3">No Definitions Found</h2>
@@ -162,26 +163,25 @@ export default function Main({ setData }) {
         </div>
       )}
 
-      {localData && (
+      {/* ✅ DATA */}
+      {!loading && localData && (
         <div className="mt-10">
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl sm:text-5xl font-bold">
-                {localData.word}
-              </h1>
+              <h1 className="text-4xl font-bold">{localData.word}</h1>
               {localData.phonetic && (
-                <p className="text-[#A445ED] text-lg sm:text-2xl mt-1">
+                <p className="text-[#A445ED] text-xl mt-1">
                   {localData.phonetic}
                 </p>
               )}
             </div>
 
             {audio && (
-              <button onClick={toggleAudio} type="button">
+              <button onClick={toggleAudio}>
                 <img
                   src={Playing ? Pause : Play}
                   alt="audio"
-                  className="w-14 h-14 sm:w-[75px] sm:h-[75px]"
+                  className="w-16 h-16"
                 />
               </button>
             )}
@@ -189,24 +189,18 @@ export default function Main({ setData }) {
 
           {localData.meanings.map((meaning, idx) => (
             <div key={idx} className="mt-8">
-              <div className="flex items-center gap-4 mb-4">
-                <p className="font-bold italic">{meaning.partOfSpeech}</p>
-                <div className="flex-1 h-px bg-[#E9E9E9] dark:bg-[#3A3A3A]" />
-              </div>
+              <p className="font-bold italic mb-3">{meaning.partOfSpeech}</p>
 
               <ul className="list-disc pl-5">
                 {meaning.definitions.map((def, i) => (
-                  <li
-                    key={i}
-                    className="marker:text-[#A445ED] mb-2 text-sm sm:text-base"
-                  >
+                  <li key={i} className="mb-2">
                     {def.definition}
                   </li>
                 ))}
               </ul>
 
               {meaning.synonyms?.length > 0 && (
-                <div className="mt-4 flex gap-4 flex-wrap">
+                <div className="mt-4 flex gap-3 flex-wrap">
                   <p className="text-[#757575]">Synonyms</p>
                   {meaning.synonyms.map((syn, i) => (
                     <button
