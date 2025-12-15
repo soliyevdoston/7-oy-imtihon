@@ -9,24 +9,24 @@ export default function Main({ setData }) {
   const [error, setError] = useState("");
   const [localData, setLocalData] = useState(null);
   const [audio, setAudio] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
+  const [Playing, setPlaying] = useState(false);
 
   useEffect(() => {
     if (localData && localData.phonetics) {
-      let foundAudio = null;
+      let found = null;
 
       for (let i = 0; i < localData.phonetics.length; i++) {
         if (
           localData.phonetics[i].audio &&
           localData.phonetics[i].audio !== ""
         ) {
-          foundAudio = localData.phonetics[i];
+          found = localData.phonetics[i];
           break;
         }
       }
 
-      if (foundAudio) {
-        let audioUrl = foundAudio.audio;
+      if (found) {
+        let audioUrl = found.audio;
 
         if (audioUrl.startsWith("//")) {
           audioUrl = "https:" + audioUrl;
@@ -35,29 +35,29 @@ export default function Main({ setData }) {
         const sound = new Audio(audioUrl);
 
         sound.onended = function () {
-          setIsPlaying(false);
+          setPlaying(false);
         };
 
         setAudio(sound);
-        setIsPlaying(false);
+        setPlaying(false);
       } else {
         setAudio(null);
-        setIsPlaying(false);
+        setPlaying(false);
       }
     } else {
       setAudio(null);
-      setIsPlaying(false);
+      setPlaying(false);
     }
   }, [localData]);
 
   const toggleAudio = () => {
     if (audio) {
-      if (isPlaying) {
+      if (Playing) {
         audio.pause();
-        setIsPlaying(false);
+        setPlaying(false);
       } else {
         audio.play();
-        setIsPlaying(true);
+        setPlaying(true);
       }
     }
   };
@@ -77,10 +77,6 @@ export default function Main({ setData }) {
           setLocalData(result[0]);
           setData(result[0]);
           setError("");
-        } else {
-          setError("notfound");
-          setLocalData(null);
-          setData(null);
         }
       } catch (err) {
         setError("notfound");
@@ -90,20 +86,18 @@ export default function Main({ setData }) {
     }
   };
 
-  const searchBySynonym = async (syn) => {
-    setWord(syn);
+  const searchBySynonym = async (sin) => {
+    setWord(sin);
     setError("");
     setLocalData(null);
     setData(null);
 
     try {
-      const result = await getWordData(syn);
+      const result = await getWordData(sin);
 
       if (result && result.length > 0) {
         setLocalData(result[0]);
         setData(result[0]);
-      } else {
-        setError("notfound");
       }
     } catch (err) {
       setError("notfound");
@@ -185,7 +179,7 @@ export default function Main({ setData }) {
             {audio && (
               <button onClick={toggleAudio} type="button">
                 <img
-                  src={isPlaying ? Pause : Play}
+                  src={Playing ? Pause : Play}
                   alt="audio"
                   className="w-14 h-14 sm:w-[75px] sm:h-[75px]"
                 />
